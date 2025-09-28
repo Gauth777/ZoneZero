@@ -29,9 +29,23 @@ const els = {
   warningsList: document.getElementById('warningsList'),
 };
 
+// --------- Helpers ----------
+function showError(where, err) {
+  console.error(`[${where}]`, err);
+  alert(`${where}: ${err?.message || err}`);
+}
+function assertOk(res) {
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+  return res;
+}
+
 // --------- Init ----------
 document.addEventListener('DOMContentLoaded', async () => {
-  await loadRegions();
+  try {
+    await loadRegions();
+  } catch (e) {
+    showError('Load Regions', e);
+  }
 
   const raw = localStorage.getItem('zz_user');
   if (raw) enterDashboard(JSON.parse(raw));
@@ -39,39 +53,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // --------- Regions ----------
 async function loadRegions() {
-  const res = await fetch(`${API_BASE}/api/regions`);
+  const res = await fetch(`${API_BASE}/api/regions`, { credentials: 'omit' }).then(assertOk);
   const regions = await res.json();
-  // Expect: [{name, lat, lon}]
   els.region.innerHTML = regions.map(r => `<option value="${r.name}">${r.name}</option>`).join('');
 }
 
 // --------- Auth ----------
 els.loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const username = els.username.value.trim();
-  const email = els.email.value.trim();
-  const phone = els.phone.value.trim();
-  const regionVal = els.region.value;
+  try {
+    const username = els.username.value.trim();
+    const email = els.email.value.trim();
+    const phone = els.phone.value.trim();
+    const regionVal = els.region.value;
 
-  if (!username || !email || !phone || !regionVal) {
-    alert('Please fill all fields.');
-    return;
+    if (!username || !email || !phone || !regionVal) {
+      alert('Please fill all fields.');
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/api/login`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ username, email, phone, region: regionVal })
+    }).then(assertOk);
+
+    const data = await res.json();
+    const user = { id: data.userId, username, email, phone, region: data.region };
+    localStorage.setItem('zz_user', JSON.stringify(user));
+    enterDashboard(user);
+  } catch (e2) {
+    showError('Login', e2);
   }
-
-  const res = await fetch(`${API_BASE}/api/login`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ username, email, phone, region: regionVal })
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    alert(data?.message || 'Login failed');
-    return;
-  }
-
-  const user = { id: data.userId, username, email, phone, region: data.region };
-  localStorage.setItem('zz_user', JSON.stringify(user));
-  enterDashboard(user);
 });
 
 els.logoutBtn.addEventListener('click', () => {
@@ -97,24 +110,27 @@ els.weatherBtnForceRed.addEventListener('click', async () => {
 });
 
 async function fetchWeatherAndRisk(forceRed) {
-  const user = JSON.parse(localStorage.getItem('zz_user') || '{}');
-  if (!user.region) {
-    alert('Please login first.');
-    return;
+  try {
+    const user = JSON.parse(localStorage.getItem('zz_user') || '{}');
+    if (!user.region) {
+      alert('Please login first.');
+      return;
+    }
+
+    const weather = await getWeather(user.region);
+    renderWeather(weather);
+
+    const risk = await getRisk(user.region, forceRed);
+    renderWarningsFromRisk(risk);
+  } catch (e) {
+    showError('Fetch Weather/Risk', e);
   }
-
-  const weather = await getWeather(user.region);
-  renderWeather(weather);
-
-  const risk = await getRisk(user.region, forceRed);
-  renderWarningsFromRisk(risk);
 }
 
 async function getWeather(region) {
-  const res = await fetch(`${API_BASE}/api/weather?region=${encodeURIComponent(region)}`);
-  if (!res.ok) throw new Error(`Weather fetch failed: ${res.status}`);
+  const url = `${API_BASE}/api/weather?region=${encodeURIComponent(region)}`;
+  const res = await fetch(url).then(assertOk);
   const j = await res.json();
-  // Normalize to UI shape
   return {
     temp: j.temp,
     humidity: j.humidity,
@@ -133,9 +149,8 @@ function renderWeather(d) {
 
 async function getRisk(region, forceRed = false) {
   const url = `${API_BASE}/api/risk?region=${encodeURIComponent(region)}${forceRed ? '&force=red' : ''}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Risk fetch failed: ${res.status}`);
-  return await res.json(); // {heatLevel, floodLevel, windLevel, messages[], forcedRed}
+  const res = await fetch(url).then(assertOk);
+  return await res.json(); // {heatLevel,floodLevel,windLevel,messages[],forcedRed}
 }
 
 function renderWarningsFromRisk(risk) {
@@ -175,7 +190,7 @@ function renderWarningsFromRisk(risk) {
   }
 }
 
-// --------- Quiz placeholder (optional nav) ----------
+// --------- Quiz placeholder ----------
 els.quizBtn.addEventListener('click', () => {
   alert('Quiz UI is a placeholder here. Use backend /api/quiz endpoints or a dedicated page.');
 });
