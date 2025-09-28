@@ -1,28 +1,33 @@
 package com.zonezero.backend.controller;
 
 import com.zonezero.backend.dto.RiskResponse;
-import com.zonezero.backend.service.RegionService;
 import com.zonezero.backend.service.RiskService;
 import com.zonezero.backend.service.WeatherService;
 import com.zonezero.backend.util.WeatherData;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/risk")
+@RequestMapping("/api")
 public class RiskController {
-  private final RegionService regionService;
-  private final WeatherService weatherService;
-  private final RiskService riskService;
 
-  public RiskController(RegionService regionService, WeatherService weatherService, RiskService riskService) {
-    this.regionService = regionService; this.weatherService = weatherService; this.riskService = riskService;
-  }
+    private final RiskService riskService;
+    private final WeatherService weatherService;
 
-  @GetMapping
-  public RiskResponse get(@RequestParam String region, @RequestParam(required = false) String force) {
-    regionService.getByNameOrThrow(region);
-    WeatherData w = weatherService.getWeatherForRegion(region);
-    boolean forceRed = "red".equalsIgnoreCase(force);
-    return riskService.computeRisk(region, forceRed, w);
-  }
+    public RiskController(RiskService riskService, WeatherService weatherService) {
+        this.riskService = riskService;
+        this.weatherService = weatherService;
+    }
+
+    @GetMapping("/risk")
+    public RiskResponse getRisk(
+            @RequestParam("region") String region,
+            @RequestParam(value = "force", required = false) String force
+    ) {
+        boolean forceRed = "red".equalsIgnoreCase(force);
+        WeatherData w = weatherService.getWeatherForRegion(region);
+        return riskService.computeRisk(region, forceRed, w);
+    }
 }
