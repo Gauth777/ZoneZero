@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ZoneZero</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="nav">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-text">ZoneZero</span>
+      </div>
+      <div class="user-chip" id="userChip" hidden>
+        <span id="chipName">Player</span>
+        <button class="btn btn-ghost" id="logoutBtn" aria-label="Log out">Logout</button>
+      </div>
+    </header>
+
+    <!-- LOGIN -->
+    <main id="loginView" class="view">
+      <section class="card card-lg">
+        <h1 class="title">Log in</h1>
+        <p class="muted">Enter details to personalize alerts for your region.</p>
+
+        <form id="loginForm" class="form">
+          <div class="grid grid-2">
+            <label class="field">
+              <span>Username</span>
+              <input type="text" id="username" placeholder="e.g., Naman" required />
+            </label>
+
+            <label class="field">
+              <span>Email</span>
+              <input type="email" id="email" placeholder="you@example.com" required />
+            </label>
+
+            <label class="field">
+              <span>Phone</span>
+              <input type="tel" id="phone" placeholder="10-digit number" pattern="[0-9]{10}" required />
+            </label>
+
+            <label class="field">
+              <span>Region</span>
+              <select id="region" required>
+                <option value="" disabled selected>Select your region</option>
+                <option value="Chennai,IN">Chennai</option>
+                <option value="Mumbai,IN">Mumbai</option>
+                <option value="Delhi,IN">Delhi</option>
+                <option value="Bengaluru,IN">Bengaluru</option>
+                <option value="Kolkata,IN">Kolkata</option>
+                <option value="Hyderabad,IN">Hyderabad</option>
+                <option value="Custom">Custom (enter below)</option>
+              </select>
+            </label>
+
+            <label class="field grid-span-2" id="customRegionWrap" hidden>
+              <span>Custom Region (City, CountryCode)</span>
+              <input type="text" id="customRegion" placeholder="e.g., Coimbatore,IN" />
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-full">Enter ZoneZero</button>
+        </form>
+      </section>
+    </main>
+
+    <!-- DASHBOARD -->
+    <main id="dashView" class="view" hidden>
+      <section class="hero card">
+        <div>
+          <h2 id="greet">Hi, Player</h2>
+          <p class="muted">Choose an action below.</p>
+        </div>
+      </section>
+
+      <!-- Three action cards -->
+      <section class="grid grid-3">
+        <div class="card action">
+          <div class="action-icon">🎯</div>
+          <h3>Play Quiz</h3>
+          <p class="muted">Test your disaster readiness.</p>
+          <button class="btn btn-primary" id="quizBtn">Start</button>
+        </div>
+
+        <div class="card action">
+          <div class="action-icon">⛅</div>
+          <h3>Check Weather</h3>
+          <p class="muted">Get live weather for your region.</p>
+          <div class="stack-8">
+            <button class="btn" id="weatherBtn">Fetch Weather</button>
+            <div id="weatherBox" class="weather-box" hidden>
+              <div class="weather-row">
+                <span>Temp</span><strong id="wTemp">—</strong>
+              </div>
+              <div class="weather-row">
+                <span>Humidity</span><strong id="wHum">—</strong>
+              </div>
+              <div class="weather-row">
+                <span>Wind</span><strong id="wWind">—</strong>
+              </div>
+              <div class="weather-row">
+                <span>Status</span><strong id="wStat">—</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card action">
+          <div class="action-icon">🚨</div>
+          <h3>Warnings</h3>
+          <p class="muted">Auto-generated from latest weather.</p>
+          <ul class="warnings" id="warningsList">
+            <li class="muted">No data yet. Click “Fetch Weather”.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Full-width news section -->
+      <section id="newsSection" class="news-section">
+        <h2>Latest Disaster News</h2>
+        <ul id="newsList" class="news-list"></ul>
+        <a id="moreNewsLink" class="more-link" href="#" hidden>More news…</a>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span class="muted">© Disasterverse • Stay ready, stay safe.</span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

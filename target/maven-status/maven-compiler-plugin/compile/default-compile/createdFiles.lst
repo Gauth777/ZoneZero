@@ -1,0 +1,8 @@
+com\example\zonezero\repository\UserRepository.class
+com\example\zonezero\ZoneZeroApplication.class
+com\example\zonezero\controller\WeatherController.class
+com\example\zonezero\controller\NewsController.class
+com\example\zonezero\service\NewsService.class
+com\example\zonezero\service\WeatherService.class
+com\example\zonezero\model\User.class
+com\example\zonezero\controller\UserController.class
