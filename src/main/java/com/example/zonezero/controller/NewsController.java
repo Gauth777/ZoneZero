@@ -1,18 +1,10 @@
 package com.example.zonezero.controller;
 
+import com.example.zonezero.service.NewsService;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.zonezero.service.NewsService;
-
-/**
- * REST controller exposing the news endpoint.
- */
 @RestController
 @RequestMapping("/api/news")
 public class NewsController {
@@ -23,14 +15,8 @@ public class NewsController {
         this.newsService = newsService;
     }
 
-    /**
-     * GET /api/news
-     *
-     * @return a list of news articles
-     */
     @GetMapping
-    public ResponseEntity<List<Map<String, String>>> getNews() {
-        List<Map<String, String>> articles = newsService.getLatestNews();
-        return ResponseEntity.ok(articles);
+    public List<Map<String, Object>> getNews(@RequestParam(defaultValue = "disaster") String q) {
+        return newsService.getDisasterNews(q);
     }
 }

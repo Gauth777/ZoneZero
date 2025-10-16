@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.zonezero.model.WeatherData;
 import com.example.zonezero.service.WeatherService;
 
 /**
@@ -30,8 +31,9 @@ public class WeatherController {
      * @return JSON containing weather data
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getWeather(@RequestParam(name = "q") String q) {
-        Map<String, Object> weather = weatherService.getWeatherForRegion(q);
-        return ResponseEntity.ok(weather);
-    }
+public ResponseEntity<WeatherData> getWeather(@RequestParam(name = "q") String q) {
+    WeatherData weather = weatherService.getWeatherForRegion(q);
+    return ResponseEntity.ok(weather);
+}
+
 }

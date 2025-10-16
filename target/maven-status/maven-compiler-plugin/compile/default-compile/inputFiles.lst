@@ -1,9 +1,13 @@
 C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\controller\WeatherController.java
+C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\controller\AlertController.java
+C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\model\User.java
+C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\service\WeatherService.java
+C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\repository\AlertRepository.java
 C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\ZoneZeroApplication.java
 C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\config\WebConfig.java
-C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\model\User.java
+C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\model\WeatherData.java
 C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\repository\UserRepository.java
-C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\service\WeatherService.java
+C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\model\Alert.java
 C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\controller\UserController.java
 C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\controller\NewsController.java
 C:\Users\prads\Desktop\HTML\ZoneZero\src\main\java\com\example\zonezero\service\NewsService.java

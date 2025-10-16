@@ -116,42 +116,90 @@ body{
 .dot.red{background:var(--bad)}
 
 .foot{margin-top:28px;display:flex;justify-content:center;font-size:.95rem;opacity:.8}
-/* ----- News section ----- */
+/* --- News Section (horizontal newspaper bar) --- */
 .news-section {
-  margin-top: 24px;
-  background: var(--card);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius);
-  padding: 20px;
-  box-shadow: var(--shadow);
+  margin-top: 30px;
+  background: #e5e5e5;          /* soft gray paper */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  padding: 10px 15px;
+  overflow: hidden;
+  position: relative;
 }
-.news-section h2 {
-  margin: 0 0 12px;
+
+.news-section h3 {
+  color: #0d47a1;
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
+
+/* fixed horizontal viewport */
 .news-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  position: relative;
+  height: 180px;                 /* fixed visible height */
 }
-.news-list li a {
-  color: var(--acc);
-  text-decoration: none;
-  font-weight: 600;
+
+/* each single visible card */
+.news-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: transform 0.8s ease, opacity 0.8s ease;
+  background: #f7f7f7;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  padding: 10px;
 }
-.news-list li a:hover {
-  text-decoration: underline;
+
+.news-card.active {
+  opacity: 1;
+  transform: translateX(0);
 }
+
+.news-card.exit {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.news-card img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.news-card h4 {
+  font-size: 15px;
+  color: #111;
+  margin: 0 0 4px;
+}
+
+.news-card p {
+  font-size: 13px;
+  color: #333;
+}
+
 .more-link {
-  display: inline-block;
-  margin-top: 12px;
-  color: var(--acc);
+  display: block !important;
+  visibility: visible !important;
+  text-align: right;
+  margin-top: 8px;
+  padding-right: 6px;
+  color: #0d47a1;
   font-weight: 600;
   text-decoration: none;
-  cursor: pointer;
+  position: relative;
+  z-index: 2; /* ensures it’s above flipping cards */
 }
+
 .more-link:hover {
   text-decoration: underline;
 }

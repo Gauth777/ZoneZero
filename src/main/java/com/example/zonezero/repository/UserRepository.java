@@ -1,12 +1,14 @@
 package com.example.zonezero.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.zonezero.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
 
 /**
- * Spring Data repository for {@link User} entities. Provides basic CRUD
- * operations out of the box and can be extended for custom queries.
+ * Repository for User entity.
+ * Extends JpaRepository to provide CRUD operations automatically.
  */
 public interface UserRepository extends JpaRepository<User, Long> {
-    // Additional query methods can be declared here if needed
+    // Custom finder method
+    Optional<User> findByEmail(String email);
 }

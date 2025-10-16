@@ -107,10 +107,10 @@ function enterDashboard(user) {
   els.chipName.textContent = user.name;
 
   showQuizTotalsOnDashboard();
-  loadNews();
++ loadDisasterNews();
   checkAlerts(user.region);
-
 }
+
 
 // ---- Quiz redirect ----
 document.getElementById('quizBtn')?.addEventListener('click', () => {
@@ -146,17 +146,20 @@ async function getWeather(region) {
     const res = await fetch(`${API_BASE}/api/weather?q=${encodeURIComponent(region)}`);
     if (!res.ok) throw new Error(`Weather fetch failed: ${res.status}`);
     const j = await res.json();
+
+    // ✅ Match your backend JSON structure
     return {
-      temp: j?.main?.temp ?? 0,
-      humidity: j?.main?.humidity ?? 0,
-      wind: j?.wind?.speed ?? 0,
-      status: j?.weather?.[0]?.main ?? "—"
+      temp: j.temp ?? 0,
+      humidity: j.humidity ?? 0,
+      wind: j.windSpeed ?? 0,
+      status: j.status ?? "—"
     };
   } catch (e) {
     console.warn("Live weather failed; using mock:", e);
     return getWeatherMock(region);
   }
 }
+
 
 function renderWeather(d) {
   els.weatherBox.hidden = false;
@@ -199,36 +202,60 @@ function renderWarnings(d) {
 }
 
 // ---- News ----
-async function getNews() {
+async function loadDisasterNews() {
+  const list = document.getElementById("newsList");
+  const moreLink = document.getElementById("moreNewsLink");
+  list.innerHTML = "";
+  clearInterval(window.newsCycle); // ✅ Stop old timers to avoid duplicates
+
   try {
     const res = await fetch(`${API_BASE}/api/news?q=disaster`);
-    if (!res.ok) throw new Error(`News fetch failed: ${res.status}`);
-    return await res.json();
-  } catch (e) {
-    console.warn("Live news fetch failed; using mock data:", e);
-    return [
-      { title: "Major Floods Impact Southeast Asia", url: "#1" },
-      { title: "Wildfire Season Intensifies in California", url: "#2" },
-      { title: "Earthquake Near Tokyo", url: "#3" }
-    ];
+    const articles = await res.json();
+
+    if (!Array.isArray(articles) || !articles.length) {
+      list.innerHTML = `
+        <li class="news-card active"><h4>No recent disaster news found.</h4></li>`;
+      moreLink.hidden = true;
+      return;
+    }
+
+    // ✅ Build visible cards
+    articles.forEach((a, i) => {
+      const li = document.createElement("li");
+      li.className = "news-card" + (i === 0 ? " active" : "");
+      li.innerHTML = `
+        <img src="${a.image || 'https://via.placeholder.com/300x150?text=No+Image'}" alt="">
+        <h4>${a.title}</h4>
+        <p>${a.description || ''}</p>
+      `;
+      li.addEventListener("click", () => window.open(a.url, "_blank"));
+      list.appendChild(li);
+    });
+
+    // ✅ Cycle through unique news cards
+    const cards = list.querySelectorAll(".news-card");
+    let index = 0;
+    window.newsCycle = setInterval(() => {
+      cards[index].classList.remove("active");
+      index = (index + 1) % cards.length;
+      cards[index].classList.add("active");
+    }, 5000); // switch every 5s
+
+    // ✅ Make “More news…” visible
+    moreLink.href = "https://news.google.com/search?q=disaster";
+    moreLink.hidden = false;
+
+  } catch (err) {
+    console.error("News fetch failed:", err);
+    list.innerHTML = "<li class='news-card active'><h4>Couldn’t load news feed.</h4></li>";
   }
 }
 
-async function loadNews() {
-  const articles = await getNews();
-  renderNews(articles);
-}
 
-function renderNews(articles) {
-  els.newsList.innerHTML = '';
-  const showCount = Math.min(articles.length, 2);
-  for (let i = 0; i < showCount; i++) {
-    const a = articles[i];
-    const li = document.createElement('li');
-    li.innerHTML = `<a href="${a.url}" target="_blank">${a.title}</a>`;
-    els.newsList.appendChild(li);
-  }
-}
+// Call once on page load
+loadDisasterNews();
+setInterval(loadDisasterNews, 300000);
+
 
 // ---- Quiz totals ----
 function showQuizTotalsOnDashboard() {
