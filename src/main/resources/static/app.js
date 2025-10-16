@@ -260,3 +260,26 @@ function showQuizTotalsOnDashboard() {
     chip.innerHTML = html;
   }
 }
+
+async function checkAlerts(region) {
+  try {
+    const res = await fetch(`${API_BASE}/api/alerts?region=${encodeURIComponent(region)}`);
+    if (!res.ok) throw new Error("Alert fetch failed");
+    const alerts = await res.json();
+
+    if (alerts.length > 0) {
+      alerts.forEach(a => showAlertPopup(a.message, a.severity));
+    }
+  } catch (err) {
+    console.warn("No alerts found or server unavailable.");
+  }
+}
+
+function showAlertPopup(message, severity) {
+  const div = document.createElement('div');
+  div.className = `alert-popup ${severity.toLowerCase()}`;
+  div.innerHTML = `<strong>${severity} ALERT:</strong> ${message}`;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 8000);
+}
+
