@@ -1,4 +1,9 @@
-// Minimal front-end state
+// ---- Base API ----
+const API_BASE = "http://localhost:8080";
+
+console.log("🚀 ZoneZero JS loaded");
+
+// ---- Minimal front-end state ----
 const els = {
   loginView: document.getElementById('loginView'),
   dashView: document.getElementById('dashView'),
@@ -21,20 +26,19 @@ const els = {
   wWind: document.getElementById('wWind'),
   wStat: document.getElementById('wStat'),
   warningsList: document.getElementById('warningsList'),
-  // News section elements
   newsSection: document.getElementById('newsSection'),
   newsList: document.getElementById('newsList'),
   moreNewsLink: document.getElementById('moreNewsLink'),
 };
 
-// Show/hide custom region input
+// ---- Show/hide custom region input ----
 els.region.addEventListener('change', () => {
   const isCustom = els.region.value === 'Custom';
   els.customRegionWrap.hidden = !isCustom;
   if (isCustom) els.customRegion.focus();
 });
 
-// Restore session if present
+// ---- Restore session if present ----
 (function init() {
   const raw = localStorage.getItem('dv_user');
   if (raw) {
@@ -43,8 +47,10 @@ els.region.addEventListener('change', () => {
   }
 })();
 
+// ---- Submit form handler ----
 els.loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
+
   const name = els.username.value.trim();
   const email = els.email.value.trim();
   const phone = els.phone.value.trim();
@@ -60,10 +66,10 @@ els.loginForm.addEventListener('submit', async (e) => {
   }
 
   const user = { name, email, phone, region };
+  console.log("📡 Attempting registration for:", user);
 
   try {
-    // Send to backend
-    const res = await fetch("http://localhost:8080/api/register", {
+    const res = await fetch(`${API_BASE}/api/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(user),
@@ -78,7 +84,6 @@ els.loginForm.addEventListener('submit', async (e) => {
 
     console.log("✅ Registered successfully:", await res.clone().json());
 
-    // Save locally too
     localStorage.setItem("dv_user", JSON.stringify(user));
     enterDashboard(user);
   } catch (err) {
@@ -87,30 +92,32 @@ els.loginForm.addEventListener('submit', async (e) => {
   }
 });
 
-
-
+// ---- Logout ----
 els.logoutBtn.addEventListener('click', () => {
   localStorage.removeItem('dv_user');
   location.reload();
 });
 
+// ---- Dashboard view ----
 function enterDashboard(user) {
   els.loginView.hidden = true;
   els.dashView.hidden = false;
   els.userChip.hidden = false;
   els.greet.textContent = `Hi, ${user.name}`;
   els.chipName.textContent = user.name;
-  
+
   showQuizTotalsOnDashboard();
-  loadNews(); // automatically load news headlines on dashboard
+  loadNews();
+  checkAlerts(user.region);
+
 }
 
-// Quiz placeholder
+// ---- Quiz redirect ----
 document.getElementById('quizBtn')?.addEventListener('click', () => {
   window.location.href = 'quiz/index.html';
 });
 
-// Weather fetcher
+// ---- Weather ----
 els.weatherBtn.addEventListener('click', async () => {
   const user = JSON.parse(localStorage.getItem('dv_user') || '{}');
   if (!user.region) {
@@ -122,7 +129,6 @@ els.weatherBtn.addEventListener('click', async () => {
   renderWarnings(data);
 });
 
-// ---- Weather integration ----
 function getWeatherMock(region) {
   let seed = 0;
   for (let i = 0; i < region.length; i++) seed += region.charCodeAt(i);
@@ -134,8 +140,6 @@ function getWeatherMock(region) {
   const status = ['Clear','Clouds','Rain','Thunderstorm','Drizzle','Haze'][rand(0,5)];
   return { temp, humidity, wind, status };
 }
-
-const API_BASE = "http://localhost:8080";
 
 async function getWeather(region) {
   try {
@@ -162,29 +166,16 @@ function renderWeather(d) {
   els.wStat.textContent = d.status;
 }
 
-// Simple rule-based warnings
+// ---- Warnings ----
 function renderWarnings(d) {
   const rules = [
-    {
-      test: () => d.wind >= 14,
-      text: 'High winds detected. Secure loose items and avoid open areas.',
-      level: 'red'
-    },
-    {
-      test: () => d.humidity >= 85 && (d.status === 'Rain' || d.status === 'Thunderstorm'),
-      text: 'Heavy moisture + rain: flash-flood risk in low-lying zones.',
-      level: 'red'
-    },
-    {
-      test: () => d.temp >= 34 && d.humidity >= 60,
-      text: 'Heat + humidity: risk of heat exhaustion. Hydrate, avoid peak sun.',
-      level: 'yellow'
-    },
-    {
-      test: () => d.status === 'Thunderstorm',
-      text: 'Thunderstorms nearby. Stay indoors and unplug sensitive devices.',
-      level: 'yellow'
-    },
+    { test: () => d.wind >= 14, text: 'High winds detected.', level: 'red' },
+    { test: () => d.humidity >= 85 && (d.status === 'Rain' || d.status === 'Thunderstorm'),
+      text: 'Flash-flood risk.', level: 'red' },
+    { test: () => d.temp >= 34 && d.humidity >= 60,
+      text: 'Heat + humidity: stay hydrated.', level: 'yellow' },
+    { test: () => d.status === 'Thunderstorm',
+      text: 'Thunderstorms nearby.', level: 'yellow' },
   ];
 
   const hits = rules.filter(r => r.test());
@@ -193,7 +184,7 @@ function renderWarnings(d) {
   if (hits.length === 0) {
     els.warningsList.innerHTML = `
       <li class="warn ok"><span class="dot green"></span>
-        <div><strong>All clear.</strong> No immediate alerts for your area.</div>
+        <div><strong>All clear.</strong> No immediate alerts.</div>
       </li>`;
     return;
   }
@@ -207,46 +198,29 @@ function renderWarnings(d) {
   }
 }
 
-// ---- News integration ----
-// Fetch the latest disaster news from your backend.
-// You’ll need to implement the /api/news endpoint on the server side.
+// ---- News ----
 async function getNews() {
   try {
     const res = await fetch(`${API_BASE}/api/news?q=disaster`);
     if (!res.ok) throw new Error(`News fetch failed: ${res.status}`);
-    return await res.json(); // Expect array of { title, description, url }
+    return await res.json();
   } catch (e) {
     console.warn("Live news fetch failed; using mock data:", e);
     return [
-      {
-        title: "Major Floods Impact Southeast Asia",
-        description: "Heavy rains have triggered widespread flooding in parts of Thailand and Cambodia...",
-        url: "https://example.com/article1"
-      },
-      {
-        title: "Wildfire Season Intensifies in California",
-        description: "Multiple blazes are spreading rapidly across northern California as dry conditions persist...",
-        url: "https://example.com/article2"
-      },
-      {
-        title: "Earthquake Strikes Near Tokyo, Minor Damage Reported",
-        description: "A magnitude 5.4 earthquake shook the outskirts of Tokyo early this morning...",
-        url: "https://example.com/article3"
-      }
+      { title: "Major Floods Impact Southeast Asia", url: "#1" },
+      { title: "Wildfire Season Intensifies in California", url: "#2" },
+      { title: "Earthquake Near Tokyo", url: "#3" }
     ];
   }
 }
 
-// Automatically load the first two news items on dashboard load
 async function loadNews() {
   const articles = await getNews();
   renderNews(articles);
 }
 
-// Render the news list into the full-width section
 function renderNews(articles) {
   els.newsList.innerHTML = '';
-  // Display only the first two headlines
   const showCount = Math.min(articles.length, 2);
   for (let i = 0; i < showCount; i++) {
     const a = articles[i];
@@ -254,31 +228,13 @@ function renderNews(articles) {
     li.innerHTML = `<a href="${a.url}" target="_blank">${a.title}</a>`;
     els.newsList.appendChild(li);
   }
-  // If more than two articles, show the "More news…" link
-  if (articles.length > 2) {
-    els.moreNewsLink.hidden = false;
-    els.moreNewsLink.onclick = (e) => {
-      e.preventDefault();
-      // Display remaining articles when "More news…" is clicked
-      els.newsList.innerHTML = '';
-      for (let i = 2; i < articles.length; i++) {
-        const a = articles[i];
-        const li = document.createElement('li');
-        li.innerHTML = `<a href="${a.url}" target="_blank">${a.title}</a>`;
-        els.newsList.appendChild(li);
-      }
-      els.moreNewsLink.hidden = true;
-    };
-  } else {
-    els.moreNewsLink.hidden = true;
-  }
 }
 
-// Display quiz totals (unchanged)
+// ---- Quiz totals ----
 function showQuizTotalsOnDashboard() {
   const bestMap = JSON.parse(localStorage.getItem('dv_best_scores_v1') || '{}');
   const total = Object.values(bestMap).reduce((sum, v) => sum + Number(v || 0), 0);
-  const last  = localStorage.getItem('dv_quiz_lastScore') ?? '—';
+  const last = localStorage.getItem('dv_quiz_lastScore') ?? '—';
 
   const target =
     document.querySelector('.hero') ||
