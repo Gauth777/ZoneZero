@@ -107,7 +107,7 @@ function enterDashboard(user) {
   els.chipName.textContent = user.name;
 
   showQuizTotalsOnDashboard();
-+ loadDisasterNews();
++ //loadDisasterNews();
   checkAlerts(user.region);
 }
 
@@ -235,11 +235,15 @@ async function loadDisasterNews() {
     // ✅ Cycle through unique news cards
     const cards = list.querySelectorAll(".news-card");
     let index = 0;
-    window.newsCycle = setInterval(() => {
-      cards[index].classList.remove("active");
-      index = (index + 1) % cards.length;
-      cards[index].classList.add("active");
-    }, 5000); // switch every 5s
+cards[0].classList.add("active");
+setTimeout(() => {
+  window.newsCycle = setInterval(() => {
+    cards[index].classList.remove("active");
+    index = (index + 1) % cards.length;
+    cards[index].classList.add("active");
+  }, 4000);
+}, 1000);
+
 
     // ✅ Make “More news…” visible
     moreLink.href = "https://news.google.com/search?q=disaster";
